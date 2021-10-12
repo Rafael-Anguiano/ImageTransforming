@@ -1,41 +1,49 @@
 const express = require('express')
 const multer  = require('multer')
+const dotenv = require('dotenv')
 const upload = multer({ dest: 'uploads/' })
-
+const bodyParser = require('body-parser')
+const cloudinary = require('cloudinary')
+let port = process.env.PORT || 8080;
 const app = express()
 
-let port = process.env.PORT || 8080;
+app.use(bodyParser.urlencoded({ extended:false}))
+app.use(bodyParser.json())
 
 app.get('/', (req, res) =>{
     res.send("<h1> Hello Rafa! </h1>");
 })
 
-app.get('/health', (req, res) =>{
-    res.send("<h1> OK again </h1>");
+app.post('/image', upload.single('image'), function (req, res, next) {
+  console.log('We got the file')
+  
+  cloudinary.v2.uploader.upload(req.file.path,
+    { public_id:  req.file.originalname, version: 1234567890}, //req.file.originalname
+    function(error, result, version) { console.log(result) } //res.json({image: result.url })
+  );
+  
+  //https://res.cloudinary.com/daxjqq0jt/image/upload/w_1000,c_fill,ar_1:1,g_auto,r_max,bo_5px_solid_red,b_rgb:262c35/Avatar.jpg.jpg
+
+  cloudinary.v2.uploader.upload(`https://res.cloudinary.com/daxjqq0jt/image/upload/w_1000,c_fill,ar_1:1,g_auto,r_max,bo_5px_solid_red,b_rgb:262c35/${req.file.originalname}.jpg`,
+    { public_id:  `${req.file.originalname} Edited`}, //req.file.originalname
+    function(error, result) { res.json({image: result, error: error }) } //res.json({image: result.url })
+  );
+
+  // res.json({
+  //    image: result.url,
+  //    transformation: 'hello'
+  // })
 })
 
-app.post('/profile', upload.single('avatar'), function (req, res, next) {
-  // req.file is the `avatar` file
-  // req.body will hold the text fields, if there were any
-})
-
-app.post('/photos/upload', upload.array('photos', 12), function (req, res, next) {
-  // req.files is array of `photos` files
-  // req.body will contain the text fields, if there were any
-})
-
-const cpUpload = upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'gallery', maxCount: 8 }])
-app.post('/cool-profile', cpUpload, function (req, res, next) {
-  // req.files is an object (String -> Array) where fieldname is the key, and the value is array of files
-  //
-  // e.g.
-  //  req.files['avatar'][0] -> File
-  //  req.files['gallery'] -> Array
-  //
-  // req.body will contain the text fields, if there were any
-})
 
 // Listen server
 app.listen(port, ()=>{
     console.log("Server running on port "+port);
 })
+
+dotenv.config()
+cloudinary.config({ 
+  cloud_name: process.env.CLOUD_NAME, 
+  api_key: process.env.CLOUDINARY_API_KEY, 
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
