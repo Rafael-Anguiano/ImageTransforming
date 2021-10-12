@@ -21,18 +21,12 @@ app.post('/image', upload.single('image'), function (req, res, next) {
     { public_id:  req.file.originalname, version: 1234567890}, //req.file.originalname
     function(error, result, version) { console.log(result) } //res.json({image: result.url })
   );
-  
-  //https://res.cloudinary.com/daxjqq0jt/image/upload/w_1000,c_fill,ar_1:1,g_auto,r_max,bo_5px_solid_red,b_rgb:262c35/Avatar.jpg.jpg
 
   cloudinary.v2.uploader.upload(`https://res.cloudinary.com/daxjqq0jt/image/upload/w_1000,c_fill,ar_1:1,g_auto,r_max,bo_5px_solid_red,b_rgb:262c35/${req.file.originalname}.jpg`,
     { public_id:  `${req.file.originalname} Edited`}, //req.file.originalname
     function(error, result) { res.json({image: result, error: error }) } //res.json({image: result.url })
   );
 
-  // res.json({
-  //    image: result.url,
-  //    transformation: 'hello'
-  // })
 })
 
 
